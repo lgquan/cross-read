@@ -1,0 +1,33 @@
+export type FileKind =
+  | 'directory'
+  | 'markdown'
+  | 'pdf'
+  | 'docx'
+  | 'image'
+  | 'text'
+  | 'video'
+  | 'unsupported'
+
+export interface ShareSummary {
+  id: string
+  name: string
+}
+
+export interface ShareListResponse {
+  items: ShareSummary[]
+}
+
+export interface FileEntry {
+  name: string
+  path: string
+  kind: FileKind
+  is_directory: boolean
+  size: number | null
+  modified_at: string
+}
+
+export interface DirectoryResponse {
+  share: ShareSummary
+  path: string
+  items: FileEntry[]
+}

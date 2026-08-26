@@ -1,0 +1,19 @@
+server:
+  host: "0.0.0.0"
+  port: 8000
+
+discovery:
+  windows_smb: true
+
+# 可选：这里可以额外加入没有设置为 Windows 共享的目录。
+shares: []
+# shares:
+#   - id: "documents"
+#     name: "文档"
+#     path: "D:/Documents"
+
+visibility:
+  show_hidden: false
+  ignored_names:
+    - ".git"
+    - "__pycache__"
