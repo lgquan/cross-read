@@ -1,6 +1,20 @@
 from __future__ import annotations
 
+from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
+
+from cross_read.api.routes.shares import detect_file_kind
+from cross_read.models.files import FileKind
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["script.py", "App.tsx", "query.sql", "module.ps1", "main.go", "Dockerfile"],
+)
+def test_source_files_are_readable_text(name: str) -> None:
+    assert detect_file_kind(Path(name)) is FileKind.TEXT
 
 
 def test_status(client: TestClient) -> None:

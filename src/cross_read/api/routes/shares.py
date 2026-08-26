@@ -37,10 +37,39 @@ EXTENSION_KINDS: dict[str, FileKind] = {
     ".yml": FileKind.TEXT,
     ".toml": FileKind.TEXT,
     ".py": FileKind.TEXT,
+    ".pyw": FileKind.TEXT,
     ".js": FileKind.TEXT,
+    ".jsx": FileKind.TEXT,
+    ".mjs": FileKind.TEXT,
+    ".cjs": FileKind.TEXT,
     ".ts": FileKind.TEXT,
+    ".tsx": FileKind.TEXT,
+    ".mts": FileKind.TEXT,
+    ".cts": FileKind.TEXT,
     ".css": FileKind.TEXT,
     ".html": FileKind.TEXT,
+    ".htm": FileKind.TEXT,
+    ".xml": FileKind.TEXT,
+    ".vue": FileKind.TEXT,
+    ".sh": FileKind.TEXT,
+    ".bash": FileKind.TEXT,
+    ".zsh": FileKind.TEXT,
+    ".ps1": FileKind.TEXT,
+    ".psm1": FileKind.TEXT,
+    ".psd1": FileKind.TEXT,
+    ".sql": FileKind.TEXT,
+    ".ini": FileKind.TEXT,
+    ".cfg": FileKind.TEXT,
+    ".conf": FileKind.TEXT,
+    ".c": FileKind.TEXT,
+    ".h": FileKind.TEXT,
+    ".cc": FileKind.TEXT,
+    ".cpp": FileKind.TEXT,
+    ".cxx": FileKind.TEXT,
+    ".hpp": FileKind.TEXT,
+    ".java": FileKind.TEXT,
+    ".go": FileKind.TEXT,
+    ".rs": FileKind.TEXT,
     ".mp4": FileKind.VIDEO,
     ".mov": FileKind.VIDEO,
     ".m4v": FileKind.VIDEO,
@@ -50,6 +79,8 @@ EXTENSION_KINDS: dict[str, FileKind] = {
 def detect_file_kind(path: Path) -> FileKind:
     if path.is_dir():
         return FileKind.DIRECTORY
+    if path.name.casefold() == "dockerfile":
+        return FileKind.TEXT
     return EXTENSION_KINDS.get(path.suffix.lower(), FileKind.UNSUPPORTED)
 
 

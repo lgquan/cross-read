@@ -8,6 +8,7 @@ import { getContentUrl, getTextContent } from '@/api/client'
 import { resolveMarkdownAssetPath } from '@/utils/markdownAssets'
 import { createHeadingId } from '@/utils/markdownHeadings'
 import { normalizeMarkdownSource } from '@/utils/markdownSource'
+import { highlightMarkdownCode } from '@/utils/syntaxHighlight'
 import { parseThemePreference, resolveTheme, THEME_CHANGE_EVENT } from '@/utils/theme'
 import ReaderStatus from './ReaderStatus.vue'
 
@@ -40,6 +41,7 @@ const markdown = new MarkdownIt({
   html: false,
   linkify: true,
   breaks: true,
+  highlight: highlightMarkdownCode,
   typographer: true,
 })
 
