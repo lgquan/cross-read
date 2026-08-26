@@ -1,0 +1,29 @@
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(0, 1, 0, 0),
+    prodvers=(0, 1, 0, 0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo([
+      StringTable(
+        u'080404B0',
+        [
+          StringStruct(u'CompanyName', u'Cross Read'),
+          StringStruct(u'FileDescription', u'Cross Read 局域网只读文件阅读器'),
+          StringStruct(u'FileVersion', u'0.1.0'),
+          StringStruct(u'InternalName', u'CrossRead'),
+          StringStruct(u'OriginalFilename', u'CrossRead.exe'),
+          StringStruct(u'ProductName', u'Cross Read'),
+          StringStruct(u'ProductVersion', u'0.1.0')
+        ]
+      )
+    ]),
+    VarFileInfo([VarStruct(u'Translation', [2052, 1200])])
+  ]
+)

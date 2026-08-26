@@ -1,4 +1,9 @@
-import type { DirectoryResponse, SearchResponse, ShareListResponse } from '@/types/files'
+import type {
+  DirectoryResponse,
+  SearchResponse,
+  ShareListResponse,
+  StartupResponse,
+} from '@/types/files'
 
 const API_BASE = '/api/v1'
 
@@ -12,9 +17,10 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(url: string): Promise<T> {
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${url}`, {
-    headers: { Accept: 'application/json' },
+    ...init,
+    headers: { Accept: 'application/json', ...(init?.headers ?? {}) },
   })
 
   if (!response.ok) {
@@ -33,6 +39,18 @@ async function request<T>(url: string): Promise<T> {
   }
 
   return (await response.json()) as T
+}
+
+export function getStartupSetting(): Promise<StartupResponse> {
+  return request<StartupResponse>('/system/startup')
+}
+
+export function setStartupSetting(enabled: boolean): Promise<StartupResponse> {
+  return request<StartupResponse>('/system/startup', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  })
 }
 
 export function getShares(): Promise<ShareListResponse> {

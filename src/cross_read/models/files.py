@@ -56,3 +56,9 @@ class StatusResponse(BaseModel):
     name: str
     version: str
     status: str
+
+
+class StartupResponse(BaseModel):
+    enabled: bool
+    available: bool
+    message: str | None = None

@@ -37,6 +37,13 @@ def test_status(client: TestClient) -> None:
     assert response.json()["status"] == "ok"
 
 
+def test_remote_browser_cannot_change_windows_startup(client: TestClient) -> None:
+    response = client.put("/api/v1/system/startup", json={"enabled": True})
+
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "local_only"
+
+
 def test_list_shares_does_not_expose_real_path(client: TestClient) -> None:
     response = client.get("/api/v1/shares")
 

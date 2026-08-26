@@ -60,17 +60,32 @@ Windows 电脑配置共享目录并启动服务
 - 客户端只能提交共享 ID 和共享目录内的相对路径，不能读取电脑绝对路径。
 - 路径会进行规范化和越界检查，符号链接或 junction 不能逃出共享根目录。
 - 默认隐藏以 `.` 开头的文件，并忽略 `.git`、`__pycache__` 等目录。
-- API 只开放 `GET`、`HEAD` 和必要的 `OPTIONS` 请求，不提供文件修改接口。
+- 文件 API 只提供读取能力，不提供任何文件修改接口；开机自启动设置仅允许本机桌面访问。
 - 服务适合家庭或可信局域网使用。不要直接把端口暴露到公网；需要外网访问时，应使用 Tailscale、WireGuard 等安全组网方案。
 
-## 环境要求
+## Windows 安装版
+
+普通用户使用 `CrossRead-Setup.exe` 安装即可，不需要安装 Python、uv、Node.js，也不需要下载源代码。
+
+安装版提供：
+
+- Cross Read 独立桌面窗口，不跳转到外部浏览器。
+- 后台自动启动 FastAPI 服务，手机仍可通过局域网地址访问。
+- 关闭桌面窗口后隐藏到 Windows 系统托盘。
+- 双击托盘图标可重新打开，右键选择“退出”才会完全停止服务。
+- 设置面板中可手动开启或关闭“开机自启动”。
+- 自动发现当前电脑已经发布的普通 Windows 共享文件夹。
+
+首次运行时，如果 Windows 防火墙询问是否允许网络访问，请允许 Cross Read 在专用网络中通信。安装包当前未使用商业代码签名证书，Windows 可能显示未知发布者提示。
+
+## 从源代码运行
+
+开发环境需要：
 
 - Windows 10/11
 - Python 3.12
-- [uv](https://docs.astral.sh/uv/)：Python 依赖和项目命令管理
-- Node.js 与 pnpm：仅在开发或重新构建前端时需要
-
-最终运行时只需要 Python 环境和构建后的静态页面，不需要单独启动 Node.js 服务。
+- [uv](https://docs.astral.sh/uv/)
+- Node.js 与 pnpm
 
 ## 快速开始
 
@@ -149,6 +164,20 @@ pnpm dev
 
 开发前端默认运行在 `http://127.0.0.1:5173`，Vite 会将 `/api` 请求代理到后端的 8000 端口。
 
+## 构建 Windows 安装包
+
+安装 Inno Setup 7 或 6 后执行：
+
+```powershell
+.\scripts\build_windows.ps1
+```
+
+脚本会构建 Vue 页面、生成应用图标、使用 PyInstaller 打包桌面程序，再通过 Inno Setup 生成：
+
+```text
+dist/installer/CrossRead-Setup.exe
+```
+
 ## 质量检查
 
 ```powershell
@@ -167,6 +196,8 @@ pnpm build
 cross-read/
 ├── src/cross_read/        # FastAPI 后端、路径安全、文件流和静态资源
 ├── frontend/              # Vue 3 + TypeScript 前端
+├── packaging/             # PyInstaller 与 Inno Setup 配置
+├── scripts/               # Windows 构建脚本
 ├── tests/                 # 后端自动化测试
 ├── docs/MVP.md            # 产品边界、技术方案和验收标准
 ├── config.example.yaml    # 配置示例
@@ -179,4 +210,4 @@ cross-read/
 
 ## 当前状态
 
-第一阶段已经完成：局域网共享目录发现、只读浏览、递归搜索、Markdown/PDF/DOCX/表格/PPTX/图片/文本/源码/音视频预览，以及移动端和桌面端适配。后续可以在此基础上继续完善 Windows 托盘程序、访问密码和安装包等桌面化能力。
+第一阶段和 Windows 桌面化已经完成：局域网共享目录发现、只读浏览、递归搜索、常用文件预览、移动端适配、桌面 WebView2 窗口、系统托盘、开机自启动和正式安装包。后续可以继续完善访问密码、局域网地址展示和代码签名发布流程。

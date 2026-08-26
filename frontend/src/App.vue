@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, Monitor, Moon, Settings, Sun, X } from '@lucide/vue'
+import { BookOpen, Monitor, Moon, Power, Settings, Sun, X } from '@lucide/vue'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { useRoute } from 'vue-router'
@@ -9,6 +9,7 @@ import {
   setThemePreference,
   type ThemePreference,
 } from '@/utils/theme'
+import { getStartupSetting, setStartupSetting } from '@/api/client'
 
 const route = useRoute()
 const isMarkdownReader = computed(
@@ -18,6 +19,10 @@ const settingsOpen = ref(false)
 const settingsTrigger = ref<HTMLButtonElement | null>(null)
 const settingsPanel = ref<HTMLElement | null>(null)
 const theme = ref<ThemePreference>(readThemePreference())
+const startupEnabled = ref(false)
+const startupAvailable = ref(false)
+const startupLoading = ref(false)
+const startupError = ref('')
 const themeOptions = [
   { value: 'system' as const, label: '跟随系统', icon: Monitor },
   { value: 'light' as const, label: '浅色', icon: Sun },
@@ -26,7 +31,39 @@ const themeOptions = [
 
 function openSettings(): void {
   settingsOpen.value = true
+  void loadStartupSetting()
   void nextTick(() => settingsPanel.value?.querySelector<HTMLButtonElement>('.settings-close')?.focus())
+}
+
+async function loadStartupSetting(): Promise<void> {
+  startupLoading.value = true
+  startupError.value = ''
+  try {
+    const setting = await getStartupSetting()
+    startupEnabled.value = setting.enabled
+    startupAvailable.value = setting.available
+    if (setting.message) startupError.value = setting.message
+  } catch (reason) {
+    startupAvailable.value = false
+    startupError.value = reason instanceof Error ? reason.message : '无法读取开机自启动设置'
+  } finally {
+    startupLoading.value = false
+  }
+}
+
+async function toggleStartup(): Promise<void> {
+  if (!startupAvailable.value || startupLoading.value) return
+  const nextValue = !startupEnabled.value
+  startupLoading.value = true
+  startupError.value = ''
+  try {
+    const setting = await setStartupSetting(nextValue)
+    startupEnabled.value = setting.enabled
+  } catch (reason) {
+    startupError.value = reason instanceof Error ? reason.message : '无法更新开机自启动设置'
+  } finally {
+    startupLoading.value = false
+  }
 }
 
 function closeSettings(restoreFocus = true): void {
@@ -135,6 +172,26 @@ onBeforeUnmount(() => document.documentElement.classList.remove('settings-open')
                 >
                   <component :is="option.icon" :size="19" />
                   <span>{{ option.label }}</span>
+                </button>
+              </div>
+              <h3 class="settings-section-title">系统</h3>
+              <div class="startup-setting">
+                <span class="startup-setting-icon"><Power :size="19" /></span>
+                <span class="startup-setting-copy">
+                  <strong>开机自启动</strong>
+                  <small>{{ startupError || '登录 Windows 后自动启动 Cross Read' }}</small>
+                </span>
+                <button
+                  class="switch"
+                  :class="{ 'switch--on': startupEnabled }"
+                  type="button"
+                  role="switch"
+                  :aria-checked="startupEnabled"
+                  :aria-label="startupEnabled ? '关闭开机自启动' : '开启开机自启动'"
+                  :disabled="!startupAvailable || startupLoading"
+                  @click="toggleStartup"
+                >
+                  <span class="switch-thumb" aria-hidden="true"></span>
                 </button>
               </div>
             </div>

@@ -20,6 +20,12 @@ export interface ShareListResponse {
   items: ShareSummary[]
 }
 
+export interface StartupResponse {
+  enabled: boolean
+  available: boolean
+  message: string | null
+}
+
 export interface FileEntry {
   name: string
   path: string
