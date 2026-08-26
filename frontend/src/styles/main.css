@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
   font-synthesis: none;
   --background: #f5f5f7;
@@ -14,6 +14,7 @@
   --blue-soft: rgba(0, 122, 255, 0.11);
   --folder: #4b93ff;
   --shadow: 0 8px 30px rgba(20, 24, 40, 0.07);
+  --body-glow: rgba(106, 169, 255, 0.14);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --reader-anchor: 80px;
@@ -29,7 +30,8 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
-html.toc-open {
+html.toc-open,
+html.settings-open {
   overflow: hidden;
 }
 
@@ -39,7 +41,7 @@ body {
   margin: 0;
   color: var(--text);
   background:
-    radial-gradient(circle at 20% -10%, rgba(106, 169, 255, 0.14), transparent 34rem),
+    radial-gradient(circle at 20% -10%, var(--body-glow), transparent 34rem),
     var(--background);
   -webkit-font-smoothing: antialiased;
 }
@@ -121,6 +123,159 @@ button {
   border-radius: 50%;
   background: #30d158;
   box-shadow: 0 0 0 3px rgba(48, 209, 88, 0.12);
+}
+
+.top-bar-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-bar-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--text-secondary);
+  background: transparent;
+}
+
+.top-bar-icon:hover,
+.top-bar-icon[aria-expanded="true"] {
+  color: var(--text);
+  background: var(--surface-muted);
+}
+
+.settings-overlay {
+  position: fixed;
+  z-index: 70;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.settings-panel {
+  width: 100%;
+  padding-bottom: var(--safe-bottom);
+  overflow: hidden;
+  border: 1px solid var(--separator);
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  outline: none;
+  background: var(--surface-solid);
+  box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.18);
+}
+
+.settings-handle {
+  width: 36px;
+  height: 5px;
+  margin: 8px auto 1px;
+  border-radius: 999px;
+  background: var(--separator);
+}
+
+.settings-header {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 8px 20px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.settings-close {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--text-secondary);
+  background: var(--surface-muted);
+}
+
+.settings-content {
+  padding: 20px 16px calc(22px + var(--safe-bottom));
+}
+
+.settings-content h3 {
+  margin: 0 0 10px 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.theme-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  background: var(--surface-muted);
+}
+
+.theme-option {
+  display: flex;
+  min-width: 0;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 5px;
+  gap: 5px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  background: transparent;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.theme-option--active {
+  color: var(--blue);
+  background: var(--surface-solid);
+  box-shadow: 0 1px 4px rgba(20, 24, 40, 0.12);
+  font-weight: 600;
+}
+
+.settings-sheet-enter-active,
+.settings-sheet-leave-active {
+  transition: opacity 180ms ease;
+}
+
+.settings-sheet-enter-active .settings-panel,
+.settings-sheet-leave-active .settings-panel {
+  transition: transform 220ms ease;
+}
+
+.settings-sheet-enter-from,
+.settings-sheet-leave-to {
+  opacity: 0;
+}
+
+.settings-sheet-enter-from .settings-panel,
+.settings-sheet-leave-to .settings-panel {
+  transform: translateY(100%);
 }
 
 .page-container {
@@ -607,7 +762,7 @@ button {
   position: fixed;
   z-index: 35;
   top: calc(var(--safe-top) + 6px);
-  right: max(20px, calc((100vw - 1040px) / 2));
+  right: max(72px, calc((100vw - 1040px) / 2 + 52px));
   display: grid;
   width: 44px;
   height: 44px;
@@ -1101,7 +1256,7 @@ button {
   }
 
   .reader-toc-trigger {
-    right: 10px;
+    right: 62px;
   }
 
   .page-container {
@@ -1165,6 +1320,32 @@ button {
 }
 
 @media (min-width: 700px) {
+  .settings-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .settings-panel {
+    width: min(390px, 100%);
+    padding-bottom: 0;
+    border-bottom: 1px solid var(--separator);
+    border-radius: 14px;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+  }
+
+  .settings-handle {
+    display: none;
+  }
+
+  .settings-content {
+    padding-bottom: 24px;
+  }
+
+  .settings-sheet-enter-from .settings-panel,
+  .settings-sheet-leave-to .settings-panel {
+    transform: translateY(10px) scale(0.98);
+  }
+
   .toc-overlay {
     align-items: stretch;
     justify-content: flex-end;
@@ -1207,8 +1388,32 @@ button {
   }
 }
 
+/* Explicit selections override the operating system preference. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #000000;
+  --surface: rgba(28, 28, 30, 0.88);
+  --surface-solid: #1c1c1e;
+  --surface-muted: #1c1c1e;
+  --text: #f5f5f7;
+  --text-secondary: #aeaeb2;
+  --text-tertiary: #8e8e93;
+  --separator: rgba(84, 84, 88, 0.5);
+  --blue: #0a84ff;
+  --blue-soft: rgba(10, 132, 255, 0.16);
+  --folder: #64a6ff;
+  --shadow: none;
+  --body-glow: rgba(10, 88, 180, 0.2);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]),
+  :root[data-theme="system"] {
+    color-scheme: dark;
     --background: #000000;
     --surface: rgba(28, 28, 30, 0.88);
     --surface-solid: #1c1c1e;
@@ -1221,12 +1426,7 @@ button {
     --blue-soft: rgba(10, 132, 255, 0.16);
     --folder: #64a6ff;
     --shadow: none;
-  }
-
-  body {
-    background:
-      radial-gradient(circle at 20% -10%, rgba(10, 88, 180, 0.2), transparent 30rem),
-      var(--background);
+    --body-glow: rgba(10, 88, 180, 0.2);
   }
 }
 

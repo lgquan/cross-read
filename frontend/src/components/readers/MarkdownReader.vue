@@ -7,6 +7,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { getContentUrl, getTextContent } from '@/api/client'
 import { resolveMarkdownAssetPath } from '@/utils/markdownAssets'
 import { createHeadingId } from '@/utils/markdownHeadings'
+import { parseThemePreference, resolveTheme, THEME_CHANGE_EVENT } from '@/utils/theme'
 import ReaderStatus from './ReaderStatus.vue'
 
 interface TocHeading {
@@ -31,6 +32,8 @@ const tocTrigger = ref<HTMLButtonElement | null>(null)
 const tocPanel = ref<HTMLElement | null>(null)
 let diagramSequence = 0
 let activeFrame = 0
+let renderRequest = 0
+let colorSchemeQuery: MediaQueryList | null = null
 
 const markdown = new MarkdownIt({
   html: false,
@@ -61,7 +64,8 @@ function rewriteAssets(value: string): string {
   for (const code of wrapper.querySelectorAll('pre > code.language-mermaid')) {
     const diagram = document.createElement('div')
     diagram.className = 'mermaid-diagram'
-    diagram.textContent = code.textContent
+    diagram.dataset.mermaidSource = code.textContent ?? ''
+    diagram.textContent = diagram.dataset.mermaidSource
     code.parentElement?.replaceWith(diagram)
   }
   return wrapper.innerHTML
@@ -177,19 +181,23 @@ async function renderMermaidDiagrams() {
   const nodes = Array.from(article.value?.querySelectorAll<HTMLElement>('.mermaid-diagram') ?? [])
   if (nodes.length === 0) return
 
+  const request = ++renderRequest
+  const preference = parseThemePreference(document.documentElement.dataset.theme)
+  const prefersDark = colorSchemeQuery?.matches ?? window.matchMedia('(prefers-color-scheme: dark)').matches
   const mermaid = (await import('mermaid')).default
   mermaid.initialize({
     startOnLoad: false,
     securityLevel: 'strict',
-    theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
+    theme: resolveTheme(preference, prefersDark) === 'dark' ? 'dark' : 'default',
     flowchart: { htmlLabels: true, useMaxWidth: true },
   })
 
   for (const node of nodes) {
-    const source = node.textContent ?? ''
+    const source = node.dataset.mermaidSource ?? node.textContent ?? ''
     try {
       diagramSequence += 1
       const result = await mermaid.render(`cross-read-diagram-${diagramSequence}`, source)
+      if (request !== renderRequest || !node.isConnected) return
       node.innerHTML = result.svg
       result.bindFunctions?.(node)
     } catch {
@@ -205,6 +213,14 @@ async function renderMermaidDiagrams() {
 
   await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
   for (const node of nodes) centerMermaidContent(node)
+}
+
+function handleThemeChange(): void {
+  void renderMermaidDiagrams()
+}
+
+function handleSystemThemeChange(): void {
+  if (document.documentElement.dataset.theme === 'system') void renderMermaidDiagrams()
 }
 
 async function load() {
@@ -234,14 +250,20 @@ async function load() {
 watch(() => [props.shareId, props.path], load)
 watch(tocOpen, (open) => document.documentElement.classList.toggle('toc-open', open))
 onMounted(() => {
+  colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)')
   window.addEventListener('scroll', scheduleActiveHeading, { passive: true })
   window.addEventListener('resize', scheduleActiveHeading)
+  window.addEventListener(THEME_CHANGE_EVENT, handleThemeChange)
+  colorSchemeQuery.addEventListener('change', handleSystemThemeChange)
   void load()
 })
 onBeforeUnmount(() => {
+  renderRequest += 1
   document.documentElement.classList.remove('toc-open')
   window.removeEventListener('scroll', scheduleActiveHeading)
   window.removeEventListener('resize', scheduleActiveHeading)
+  window.removeEventListener(THEME_CHANGE_EVENT, handleThemeChange)
+  colorSchemeQuery?.removeEventListener('change', handleSystemThemeChange)
   if (activeFrame) cancelAnimationFrame(activeFrame)
 })
 </script>
