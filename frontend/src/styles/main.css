@@ -494,11 +494,18 @@ button {
   background: var(--blue-soft);
 }
 
+.search-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 10px;
+}
+
 .search-field {
   display: flex;
   align-items: center;
   height: 44px;
-  margin-bottom: 16px;
   padding: 0 13px;
   gap: 9px;
   border: 1px solid transparent;
@@ -506,6 +513,41 @@ button {
   color: var(--text-tertiary);
   background: var(--surface-muted);
   transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.search-scope {
+  display: flex;
+  height: 44px;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--separator);
+  border-radius: 13px;
+  background: var(--surface-muted);
+}
+
+.search-scope button {
+  min-width: 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  background: transparent;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.search-scope button[aria-pressed="true"] {
+  color: var(--text);
+  background: var(--surface-solid);
+  box-shadow: 0 1px 3px rgba(20, 24, 40, 0.12);
+  font-weight: 600;
+}
+
+.search-note {
+  margin: -7px 2px 12px;
+  color: var(--text-tertiary);
+  font-size: 12px;
 }
 
 .search-field:focus-within {
@@ -613,9 +655,13 @@ button {
 }
 
 .file-copy small {
+  display: block;
+  overflow: hidden;
   margin-top: 4px;
   color: var(--text-tertiary);
   font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .state-panel {

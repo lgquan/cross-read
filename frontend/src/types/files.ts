@@ -34,3 +34,11 @@ export interface DirectoryResponse {
   path: string
   items: FileEntry[]
 }
+
+export interface SearchResponse {
+  share: ShareSummary
+  path: string
+  query: string
+  items: FileEntry[]
+  truncated: boolean
+}

@@ -61,7 +61,40 @@ def test_list_nested_directory_with_unicode(client: TestClient) -> None:
     response = client.get("/api/v1/shares/library/entries", params={"path": "资料"})
 
     assert response.status_code == 200
-    assert response.json()["items"][0]["path"] == "资料/readme.md"
+    assert "资料/readme.md" in [item["path"] for item in response.json()["items"]]
+
+
+def test_recursive_search_finds_files_in_nested_directories(client: TestClient) -> None:
+    response = client.get(
+        "/api/v1/shares/library/search", params={"q": "needle"}
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["path"] == ""
+    assert body["query"] == "needle"
+    assert body["truncated"] is False
+    assert [item["path"] for item in body["items"]] == ["资料/深层目录/needle.md"]
+
+
+def test_recursive_search_is_scoped_to_current_directory(client: TestClient) -> None:
+    response = client.get(
+        "/api/v1/shares/library/search", params={"q": "readme", "path": "资料/深层目录"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["items"] == []
+
+
+def test_recursive_search_hides_ignored_directories(client: TestClient, shared_dir: Path) -> None:
+    ignored = shared_dir / "资料" / "__pycache__"
+    ignored.mkdir()
+    (ignored / "needle.py").write_text("print('hidden')", encoding="utf-8")
+
+    response = client.get("/api/v1/shares/library/search", params={"q": "needle"})
+
+    assert response.status_code == 200
+    assert all("__pycache__" not in item["path"] for item in response.json()["items"])
 
 
 def test_path_traversal_returns_stable_error(client: TestClient) -> None:

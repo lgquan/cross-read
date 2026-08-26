@@ -16,6 +16,8 @@ def shared_dir(tmp_path: Path) -> Path:
     root.mkdir()
     (root / "资料").mkdir()
     (root / "资料" / "readme.md").write_text("# Hello", encoding="utf-8")
+    (root / "资料" / "深层目录").mkdir()
+    (root / "资料" / "深层目录" / "needle.md").write_text("# Needle", encoding="utf-8")
     (root / "video.mp4").write_bytes(b"0123456789")
     (root / "notes.txt").write_text("notes", encoding="utf-8")
     (root / ".hidden.txt").write_text("secret", encoding="utf-8")

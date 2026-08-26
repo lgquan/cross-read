@@ -1,4 +1,4 @@
-import type { DirectoryResponse, ShareListResponse } from '@/types/files'
+import type { DirectoryResponse, SearchResponse, ShareListResponse } from '@/types/files'
 
 const API_BASE = '/api/v1'
 
@@ -44,6 +44,14 @@ export function getEntries(shareId: string, path: string): Promise<DirectoryResp
   if (path) query.set('path', path)
   const suffix = query.size > 0 ? `?${query.toString()}` : ''
   return request<DirectoryResponse>(`/shares/${encodeURIComponent(shareId)}/entries${suffix}`)
+}
+
+export function searchEntries(shareId: string, path: string, query: string): Promise<SearchResponse> {
+  const params = new URLSearchParams({ q: query })
+  if (path) params.set('path', path)
+  return request<SearchResponse>(
+    `/shares/${encodeURIComponent(shareId)}/search?${params.toString()}`,
+  )
 }
 
 function fileUrl(endpoint: 'content' | 'media', shareId: string, path: string): string {

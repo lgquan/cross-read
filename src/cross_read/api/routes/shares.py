@@ -12,6 +12,7 @@ from cross_read.models.files import (
     DirectoryResponse,
     FileEntry,
     FileKind,
+    SearchResponse,
     ShareListResponse,
     ShareSummary,
 )
@@ -85,6 +86,9 @@ EXTENSION_KINDS: dict[str, FileKind] = {
     ".mov": FileKind.VIDEO,
     ".m4v": FileKind.VIDEO,
 }
+
+SEARCH_MAX_RESULTS = 500
+SEARCH_MAX_DIRECTORIES = 10_000
 
 
 def detect_file_kind(path: Path) -> FileKind:
@@ -165,6 +169,80 @@ def list_entries(
         share=ShareSummary(id=share.id, name=share.name),
         path=path.strip("/"),
         items=entries,
+    )
+
+
+@router.get("/{share_id}/search", response_model=SearchResponse)
+def search_entries(
+    share_id: str,
+    registry: Annotated[ShareRegistry, Depends(get_share_registry)],
+    query: Annotated[str, Query(min_length=1, max_length=256, alias="q")],
+    path: Annotated[str, Query(max_length=4096)] = "",
+) -> SearchResponse:
+    share = registry.get(share_id)
+    directory = registry.resolve(share_id, path)
+    if not directory.is_dir():
+        raise AppError(400, "not_a_directory", "指定路径不是文件夹")
+
+    normalized_query = query.strip().casefold()
+    if not normalized_query:
+        raise AppError(422, "empty_query", "搜索关键词不能为空")
+
+    entries: list[FileEntry] = []
+    stack: list[tuple[Path, str]] = [(directory, path.strip("/"))]
+    visited_directories: set[Path] = set()
+    truncated = False
+
+    while stack:
+        current, current_path = stack.pop()
+        try:
+            current = current.resolve(strict=True)
+        except (OSError, RuntimeError):
+            continue
+        if current in visited_directories:
+            continue
+        visited_directories.add(current)
+        if len(visited_directories) > SEARCH_MAX_DIRECTORIES:
+            truncated = True
+            break
+
+        try:
+            children = list(current.iterdir())
+        except OSError:
+            continue
+
+        for child in children:
+            if not registry.is_visible(child):
+                continue
+            child_path = to_client_path(current_path, child.name)
+            try:
+                safe_child = registry.resolve(share_id, child_path)
+            except AppError:
+                # Do not expose links or junctions that escape the configured share.
+                continue
+
+            if normalized_query in safe_child.name.casefold():
+                try:
+                    entries.append(to_entry(safe_child, child_path))
+                except AppError:
+                    continue
+                if len(entries) >= SEARCH_MAX_RESULTS:
+                    truncated = True
+                    break
+
+            if safe_child.is_dir():
+                stack.append((safe_child, child_path))
+
+        if truncated:
+            break
+
+    entries.sort(key=lambda entry: (not entry.is_directory, entry.path.casefold()))
+    return SearchResponse(
+        share=ShareSummary(id=share.id, name=share.name),
+        path=path.strip("/"),
+        query=query.strip(),
+        items=entries,
+        truncated=truncated,
     )
 
 

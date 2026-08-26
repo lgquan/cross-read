@@ -44,6 +44,14 @@ class DirectoryResponse(BaseModel):
     items: list[FileEntry]
 
 
+class SearchResponse(BaseModel):
+    share: ShareSummary
+    path: str
+    query: str
+    items: list[FileEntry]
+    truncated: bool = False
+
+
 class StatusResponse(BaseModel):
     name: str
     version: str
