@@ -1,11 +1,19 @@
 <script setup lang="ts">
+import { ListTree, X } from '@lucide/vue'
 import DOMPurify from 'dompurify'
 import MarkdownIt from 'markdown-it'
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { getContentUrl, getTextContent } from '@/api/client'
 import { resolveMarkdownAssetPath } from '@/utils/markdownAssets'
+import { createHeadingId } from '@/utils/markdownHeadings'
 import ReaderStatus from './ReaderStatus.vue'
+
+interface TocHeading {
+  id: string
+  level: number
+  text: string
+}
 
 const props = defineProps<{
   shareId: string
@@ -16,7 +24,13 @@ const html = ref('')
 const loading = ref(true)
 const error = ref('')
 const article = ref<HTMLElement | null>(null)
+const tocOpen = ref(false)
+const headings = ref<TocHeading[]>([])
+const activeHeadingId = ref('')
+const tocTrigger = ref<HTMLButtonElement | null>(null)
+const tocPanel = ref<HTMLElement | null>(null)
 let diagramSequence = 0
+let activeFrame = 0
 
 const markdown = new MarkdownIt({
   html: false,
@@ -73,6 +87,92 @@ function centerMermaidContent(node: HTMLElement): void {
   svg.setAttribute('viewBox', `${centeredX} ${centeredY} ${width} ${height}`)
 }
 
+function updateActiveHeading(): void {
+  activeFrame = 0
+  const elements = headings.value
+    .map((heading) => document.getElementById(heading.id))
+    .filter((heading): heading is HTMLElement => heading !== null)
+  const first = elements[0]
+  if (!first) {
+    activeHeadingId.value = ''
+    return
+  }
+
+  const anchor = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--reader-anchor')) || 80
+  let current = first
+  for (const heading of elements) {
+    if (heading.getBoundingClientRect().top > anchor + 2) break
+    current = heading
+  }
+  activeHeadingId.value = current.id
+}
+
+function scheduleActiveHeading(): void {
+  if (activeFrame) return
+  activeFrame = requestAnimationFrame(updateActiveHeading)
+}
+
+function collectHeadings(): void {
+  const counts = new Map<string, number>()
+  const elements = Array.from(article.value?.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6') ?? [])
+  headings.value = elements
+    .map((heading) => {
+      const text = heading.textContent?.trim() ?? ''
+      if (!text) return null
+      const id = createHeadingId(text, counts)
+      heading.id = id
+      return { id, level: Number(heading.tagName.slice(1)), text }
+    })
+    .filter((heading): heading is TocHeading => heading !== null)
+  updateActiveHeading()
+}
+
+function openToc(): void {
+  tocOpen.value = true
+  void nextTick(() => {
+    tocPanel.value?.querySelector<HTMLButtonElement>('.toc-close')?.focus()
+    requestAnimationFrame(() => {
+      tocPanel.value?.querySelector<HTMLElement>('.toc-item--active')?.scrollIntoView({ block: 'center' })
+    })
+  })
+}
+
+function closeToc(restoreFocus = true): void {
+  tocOpen.value = false
+  if (restoreFocus) void nextTick(() => tocTrigger.value?.focus())
+}
+
+function jumpToHeading(id: string): void {
+  closeToc(false)
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  activeHeadingId.value = id
+}
+
+function tocItemStyle(level: number): Record<string, string> {
+  return { '--toc-depth': String(level - 1) }
+}
+
+function handleTocKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    closeToc()
+    return
+  }
+  if (event.key !== 'Tab' || !tocPanel.value) return
+
+  const focusable = Array.from(tocPanel.value.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'))
+  if (focusable.length === 0) return
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last?.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first?.focus()
+  }
+}
+
 async function renderMermaidDiagrams() {
   const nodes = Array.from(article.value?.querySelectorAll<HTMLElement>('.mermaid-diagram') ?? [])
   if (nodes.length === 0) return
@@ -110,6 +210,9 @@ async function renderMermaidDiagrams() {
 async function load() {
   loading.value = true
   error.value = ''
+  headings.value = []
+  activeHeadingId.value = ''
+  tocOpen.value = false
   try {
     const source = await getTextContent(props.shareId, props.path)
     const safe = DOMPurify.sanitize(markdown.render(source), {
@@ -118,7 +221,9 @@ async function load() {
     html.value = rewriteAssets(safe)
     loading.value = false
     await nextTick()
+    collectHeadings()
     await renderMermaidDiagrams()
+    updateActiveHeading()
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '无法渲染 Markdown 文件'
   } finally {
@@ -127,10 +232,77 @@ async function load() {
 }
 
 watch(() => [props.shareId, props.path], load)
-onMounted(load)
+watch(tocOpen, (open) => document.documentElement.classList.toggle('toc-open', open))
+onMounted(() => {
+  window.addEventListener('scroll', scheduleActiveHeading, { passive: true })
+  window.addEventListener('resize', scheduleActiveHeading)
+  void load()
+})
+onBeforeUnmount(() => {
+  document.documentElement.classList.remove('toc-open')
+  window.removeEventListener('scroll', scheduleActiveHeading)
+  window.removeEventListener('resize', scheduleActiveHeading)
+  if (activeFrame) cancelAnimationFrame(activeFrame)
+})
 </script>
 
 <template>
+  <Teleport to="body">
+    <button
+      v-if="headings.length > 0"
+      ref="tocTrigger"
+      class="reader-toc-trigger"
+      type="button"
+      aria-label="打开目录"
+      aria-controls="markdown-toc"
+      :aria-expanded="tocOpen"
+      title="目录"
+      @click="openToc"
+    >
+      <ListTree :size="21" />
+    </button>
+
+    <Transition name="toc-sheet">
+      <div v-if="tocOpen" class="toc-overlay" @click.self="closeToc()">
+        <aside
+          id="markdown-toc"
+          ref="tocPanel"
+          class="toc-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="markdown-toc-title"
+          @keydown="handleTocKeydown"
+        >
+          <div class="toc-handle" aria-hidden="true"></div>
+          <header class="toc-header">
+            <div>
+              <p class="toc-eyebrow">当前文档</p>
+              <h2 id="markdown-toc-title">目录</h2>
+            </div>
+            <button class="toc-close" type="button" aria-label="关闭目录" title="关闭" @click="closeToc()">
+              <X :size="21" />
+            </button>
+          </header>
+          <nav class="toc-list" aria-label="文档目录">
+            <button
+              v-for="heading in headings"
+              :key="heading.id"
+              class="toc-item"
+              :class="{ 'toc-item--active': heading.id === activeHeadingId }"
+              :style="tocItemStyle(heading.level)"
+              type="button"
+              :aria-current="heading.id === activeHeadingId ? 'location' : undefined"
+              @click="jumpToHeading(heading.id)"
+            >
+              <span class="toc-level">H{{ heading.level }}</span>
+              <span>{{ heading.text }}</span>
+            </button>
+          </nav>
+        </aside>
+      </div>
+    </Transition>
+  </Teleport>
+
   <ReaderStatus :loading="loading" :error="error" />
   <!-- Sanitized with DOMPurify before rendering. -->
   <article

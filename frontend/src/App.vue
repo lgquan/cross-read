@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { BookOpen } from '@lucide/vue'
+import { computed } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const isMarkdownReader = computed(
+  () => route.name === 'preview' && route.query.kind === 'markdown',
+)
 </script>
 
 <template>
@@ -10,7 +17,7 @@ import { RouterLink, RouterView } from 'vue-router'
         <span class="brand-mark"><BookOpen :size="19" :stroke-width="2.1" /></span>
         <span>Cross Read</span>
       </RouterLink>
-      <span class="connection-pill">
+      <span v-if="!isMarkdownReader" class="connection-pill">
         <span class="connection-dot" aria-hidden="true"></span>
         局域网
       </span>
