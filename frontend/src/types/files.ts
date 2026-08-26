@@ -3,8 +3,11 @@ export type FileKind =
   | 'markdown'
   | 'pdf'
   | 'docx'
+  | 'spreadsheet'
+  | 'presentation'
   | 'image'
   | 'text'
+  | 'audio'
   | 'video'
   | 'unsupported'
 

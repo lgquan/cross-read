@@ -11,6 +11,7 @@ describe('syntax highlighting', () => {
   it('detects languages from common source file names', () => {
     expect(getLanguageFromPath('scripts/train.py')).toBe('python')
     expect(getLanguageFromPath('web/App.tsx')).toBe('typescript')
+    expect(getLanguageFromPath('data/records.jsonl')).toBe('json')
     expect(getLanguageFromPath('deploy/Dockerfile')).toBe('dockerfile')
     expect(getLanguageFromPath('notes.txt')).toBeNull()
   })

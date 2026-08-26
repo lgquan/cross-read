@@ -596,8 +596,11 @@ button {
 .file-icon--markdown { color: #5e5ce6; background: rgba(94, 92, 230, 0.11); }
 .file-icon--pdf { color: #ff3b30; background: rgba(255, 59, 48, 0.11); }
 .file-icon--docx { color: #1473e6; background: rgba(20, 115, 230, 0.11); }
+.file-icon--spreadsheet { color: #248a3d; background: rgba(36, 138, 61, 0.11); }
+.file-icon--presentation { color: #d05a16; background: rgba(208, 90, 22, 0.11); }
 .file-icon--image { color: #af52de; background: rgba(175, 82, 222, 0.11); }
 .file-icon--text { color: #636366; background: rgba(99, 99, 102, 0.11); }
+.file-icon--audio { color: #bf5af2; background: rgba(191, 90, 242, 0.11); }
 .file-icon--video { color: #ff2d55; background: rgba(255, 45, 85, 0.11); }
 
 .file-copy strong {
@@ -1161,6 +1164,171 @@ button {
   min-width: 100%;
 }
 
+.spreadsheet-reader {
+  min-height: 360px;
+  background: var(--surface-solid);
+}
+
+.sheet-tabs {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 5px 8px;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--separator);
+  background: var(--surface-muted);
+  -webkit-overflow-scrolling: touch;
+}
+
+.sheet-tabs button {
+  min-height: 32px;
+  flex: 0 0 auto;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  background: transparent;
+  font-size: 12px;
+}
+
+.sheet-tabs button[aria-selected="true"] {
+  color: var(--text);
+  background: var(--surface-solid);
+  box-shadow: 0 1px 4px rgba(20, 24, 40, 0.1);
+  font-weight: 600;
+}
+
+.sheet-table-wrap {
+  max-height: min(72vh, 760px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sheet-table {
+  width: max-content;
+  min-width: 100%;
+  border-spacing: 0;
+  border-collapse: separate;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.sheet-table th,
+.sheet-table td {
+  min-width: 110px;
+  max-width: 320px;
+  padding: 9px 11px;
+  border-right: 1px solid var(--separator);
+  border-bottom: 1px solid var(--separator);
+  overflow-wrap: anywhere;
+  text-align: left;
+  vertical-align: top;
+  white-space: pre-wrap;
+}
+
+.sheet-table thead th {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  background: var(--code-header);
+  font-weight: 650;
+}
+
+.sheet-table .sheet-row-number {
+  position: sticky;
+  z-index: 1;
+  left: 0;
+  min-width: 48px;
+  width: 48px;
+  max-width: 48px;
+  color: var(--text-tertiary);
+  background: var(--code-header);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.sheet-table thead .sheet-row-number {
+  z-index: 3;
+}
+
+.reader-empty {
+  display: grid;
+  min-height: 300px;
+  place-items: center;
+  padding: 24px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.preview-limit-note {
+  margin: 0;
+  padding: 10px 14px;
+  border-top: 1px solid var(--separator);
+  color: var(--text-tertiary);
+  background: var(--surface-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.presentation-reader {
+  min-height: 360px;
+  background: var(--surface-solid);
+}
+
+.presentation-summary-header {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--separator);
+  color: var(--text-secondary);
+  background: var(--surface-muted);
+  font-size: 12px;
+}
+
+.presentation-summary-header strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.presentation-slide {
+  padding: 24px clamp(20px, 5vw, 48px) 28px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.presentation-slide:last-child {
+  border-bottom: 0;
+}
+
+.presentation-slide h2 {
+  margin: 0 0 14px;
+  color: var(--blue);
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.presentation-slide-text {
+  max-width: 780px;
+}
+
+.presentation-slide-text p,
+.presentation-slide-empty {
+  margin: 0.55em 0;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.presentation-slide-empty {
+  color: var(--text-tertiary);
+}
+
 .reader-toolbar,
 .pdf-controls {
   display: flex;
@@ -1225,6 +1393,31 @@ button {
   justify-content: center;
   flex-direction: column;
   background: #000;
+}
+
+.audio-reader {
+  display: flex;
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 34px 24px;
+  gap: 22px;
+  background: var(--surface-solid);
+}
+
+.audio-reader-icon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border-radius: 50%;
+  color: #bf5af2;
+  background: rgba(191, 90, 242, 0.12);
+}
+
+.audio-reader audio {
+  width: min(100%, 560px);
 }
 
 .video-reader video {

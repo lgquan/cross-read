@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import {
   File,
+  FileAudio,
   FileCode2,
   FileImage,
+  FileSpreadsheet,
   FileText,
   FileType2,
   Film,
   Folder,
+  Presentation,
 } from '@lucide/vue'
 import { computed } from 'vue'
 
@@ -20,8 +23,11 @@ const icon = computed(() => {
     markdown: FileCode2,
     pdf: FileText,
     docx: FileType2,
+    spreadsheet: FileSpreadsheet,
+    presentation: Presentation,
     image: FileImage,
     text: FileText,
+    audio: FileAudio,
     video: Film,
     unsupported: File,
   }

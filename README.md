@@ -11,8 +11,8 @@ Cross Read 是一个运行在 Windows 电脑上的局域网只读文件阅读器
 - 可选配置没有发布为 Windows 共享的额外目录。
 - 手机和电脑处于同一局域网时，通过 Safari 打开服务地址。
 - 像文件管理器一样浏览目录和文件。
-- 预览 Markdown、PDF、DOCX、图片和纯文本。
-- 播放浏览器支持的 MP4、MOV 视频，并支持拖动播放进度。
+- 预览 Markdown、PDF、DOCX、CSV、XLSX、PPTX 文字摘要、图片、源码和纯文本。
+- 播放浏览器支持的视频与音频，并支持拖动播放进度。
 - 界面移动端优先，适配 iPhone，同时兼容桌面浏览器。
 - 所有共享内容只读，不提供上传、编辑、重命名、移动或删除能力。
 
@@ -50,6 +50,9 @@ Cross Read 是一个运行在 Windows 电脑上的局域网只读文件阅读器
 - DOMPurify：HTML 内容净化
 - PDF.js：PDF 预览
 - docx-preview：DOCX 预览
+- read-excel-file + Papa Parse：XLSX 与 CSV 只读表格
+- fflate：PPTX Open XML 文字摘要
+- highlight.js：Markdown 代码块与源码高亮
 
 第一阶段不引入大型 UI 组件库。界面使用自定义 CSS 变量和轻量组件实现，以便保持简洁的 iOS 风格，并减少不必要的体积。
 
@@ -65,7 +68,7 @@ iPhone / iPad / Desktop Browser
               ├── Vue 静态页面
               ├── 目录与文件元数据 API
               ├── 普通文件读取 API
-              └── 视频 Range 分段传输
+              └── 音视频 Range 分段传输
               │
               ▼
        Windows SMB 共享与可选手动目录
@@ -81,6 +84,20 @@ iPhone / iPad / Desktop Browser
 4. **移动优先**：主要交互以 iPhone Safari 为基准设计。
 5. **渐进增强**：先保证常见文件可阅读，再逐步补充高级体验。
 6. **原文件优先**：视频第一阶段不转码；浏览器不支持其内部编码时给出明确提示。
+
+## 支持的文件格式
+
+| 类型 | 格式 | 预览方式与边界 |
+| --- | --- | --- |
+| Markdown | `.md` `.markdown` | 标题目录、代码高亮、Mermaid、相对路径图片 |
+| 文本与源码 | `.txt` `.log` `.py` `.json` `.jsonl` `.yaml` `.yml` `.html` 等 | 纯文本或按扩展名语法高亮 |
+| 文档 | `.pdf` `.docx` | 浏览器内只读预览；复杂 DOCX 排版可能与 Word 不完全一致 |
+| 表格 | `.csv` `.xlsx` | 单元格表格及多工作表；不保证保留复杂样式、图表和交互 |
+| 演示文稿 | `.pptx` | 按幻灯片提取文字摘要，不还原图片、动画和视觉版式 |
+| 图片 | `.png` `.jpg` `.jpeg` `.gif` `.webp` `.svg` | 浏览器原生图片预览与缩放 |
+| 视频 | `.mp4` `.mov` `.m4v` | Range 流式播放；实际兼容性由内部编码决定 |
+| 音频 | `.wav` `.mp3` `.m4a` `.aac` `.flac` `.ogg` `.opus` | Range 流式播放；实际兼容性由浏览器和内部编码决定 |
+| 旧版 Word | `.doc` | 不解析，提示先转换为 `.docx` |
 
 ## 文档
 
@@ -151,4 +168,4 @@ pnpm build
 
 ## 当前状态
 
-第一阶段核心代码已经初始化，具备共享目录浏览和 Markdown（含 Mermaid 图表）、PDF、DOCX、图片、文本、视频只读预览能力，正在进行浏览器与真机体验验证。
+第一阶段核心代码已经初始化，具备共享目录浏览和 Markdown（含 Mermaid 图表与代码高亮）、PDF、DOCX、CSV、XLSX、PPTX 文字摘要、图片、文本、源码、音视频只读预览能力，正在进行浏览器与真机体验验证。

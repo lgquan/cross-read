@@ -63,6 +63,7 @@ const extensionLanguages: Record<string, string> = {
   java: 'java',
   js: 'javascript',
   json: 'json',
+  jsonl: 'json',
   jsonc: 'json',
   jsx: 'javascript',
   md: 'markdown',

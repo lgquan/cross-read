@@ -24,6 +24,9 @@ EXTENSION_KINDS: dict[str, FileKind] = {
     ".markdown": FileKind.MARKDOWN,
     ".pdf": FileKind.PDF,
     ".docx": FileKind.DOCX,
+    ".xlsx": FileKind.SPREADSHEET,
+    ".csv": FileKind.SPREADSHEET,
+    ".pptx": FileKind.PRESENTATION,
     ".jpg": FileKind.IMAGE,
     ".jpeg": FileKind.IMAGE,
     ".png": FileKind.IMAGE,
@@ -33,6 +36,7 @@ EXTENSION_KINDS: dict[str, FileKind] = {
     ".txt": FileKind.TEXT,
     ".log": FileKind.TEXT,
     ".json": FileKind.TEXT,
+    ".jsonl": FileKind.TEXT,
     ".yaml": FileKind.TEXT,
     ".yml": FileKind.TEXT,
     ".toml": FileKind.TEXT,
@@ -70,6 +74,13 @@ EXTENSION_KINDS: dict[str, FileKind] = {
     ".java": FileKind.TEXT,
     ".go": FileKind.TEXT,
     ".rs": FileKind.TEXT,
+    ".wav": FileKind.AUDIO,
+    ".mp3": FileKind.AUDIO,
+    ".m4a": FileKind.AUDIO,
+    ".aac": FileKind.AUDIO,
+    ".flac": FileKind.AUDIO,
+    ".ogg": FileKind.AUDIO,
+    ".opus": FileKind.AUDIO,
     ".mp4": FileKind.VIDEO,
     ".mov": FileKind.VIDEO,
     ".m4v": FileKind.VIDEO,
@@ -165,8 +176,8 @@ def read_content(
     path: Annotated[str, Query(min_length=1, max_length=4096)],
 ) -> Response:
     file_path = resolve_file(registry, share_id, path)
-    if detect_file_kind(file_path) is FileKind.VIDEO:
-        raise AppError(400, "use_media_endpoint", "视频文件需要使用媒体播放接口")
+    if detect_file_kind(file_path) in {FileKind.AUDIO, FileKind.VIDEO}:
+        raise AppError(400, "use_media_endpoint", "音视频文件需要使用媒体播放接口")
     return create_file_response(request, file_path)
 
 
@@ -178,6 +189,6 @@ def stream_media(
     path: Annotated[str, Query(min_length=1, max_length=4096)],
 ) -> Response:
     file_path = resolve_file(registry, share_id, path)
-    if detect_file_kind(file_path) is not FileKind.VIDEO:
-        raise AppError(400, "not_media", "指定文件不是支持的视频格式")
+    if detect_file_kind(file_path) not in {FileKind.AUDIO, FileKind.VIDEO}:
+        raise AppError(400, "not_media", "指定文件不是支持的媒体格式")
     return create_file_response(request, file_path)

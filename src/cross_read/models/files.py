@@ -11,8 +11,11 @@ class FileKind(StrEnum):
     MARKDOWN = "markdown"
     PDF = "pdf"
     DOCX = "docx"
+    SPREADSHEET = "spreadsheet"
+    PRESENTATION = "presentation"
     IMAGE = "image"
     TEXT = "text"
+    AUDIO = "audio"
     VIDEO = "video"
     UNSUPPORTED = "unsupported"
 

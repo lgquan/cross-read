@@ -10,11 +10,24 @@ from cross_read.models.files import FileKind
 
 
 @pytest.mark.parametrize(
-    "name",
-    ["script.py", "App.tsx", "query.sql", "module.ps1", "main.go", "Dockerfile"],
+    ("name", "kind"),
+    [
+        ("script.py", FileKind.TEXT),
+        ("records.jsonl", FileKind.TEXT),
+        ("App.tsx", FileKind.TEXT),
+        ("query.sql", FileKind.TEXT),
+        ("module.ps1", FileKind.TEXT),
+        ("main.go", FileKind.TEXT),
+        ("Dockerfile", FileKind.TEXT),
+        ("report.csv", FileKind.SPREADSHEET),
+        ("report.xlsx", FileKind.SPREADSHEET),
+        ("slides.pptx", FileKind.PRESENTATION),
+        ("podcast.wav", FileKind.AUDIO),
+        ("legacy.doc", FileKind.UNSUPPORTED),
+    ],
 )
-def test_source_files_are_readable_text(name: str) -> None:
-    assert detect_file_kind(Path(name)) is FileKind.TEXT
+def test_common_file_kinds(name: str, kind: FileKind) -> None:
+    assert detect_file_kind(Path(name)) is kind
 
 
 def test_status(client: TestClient) -> None:
@@ -106,6 +119,25 @@ def test_media_supports_open_ended_range(client: TestClient) -> None:
     assert response.headers["accept-ranges"] == "bytes"
     assert response.headers["content-range"] == "bytes 4-9/10"
     assert response.headers["content-length"] == "6"
+
+
+def test_audio_uses_range_media_endpoint(client: TestClient, shared_dir: Path) -> None:
+    (shared_dir / "sample.wav").write_bytes(b"RIFF0123456789")
+
+    content_response = client.get(
+        "/api/v1/shares/library/content", params={"path": "sample.wav"}
+    )
+    media_response = client.get(
+        "/api/v1/shares/library/media",
+        params={"path": "sample.wav"},
+        headers={"Range": "bytes=4-7"},
+    )
+
+    assert content_response.status_code == 400
+    assert content_response.json()["error"]["code"] == "use_media_endpoint"
+    assert media_response.status_code == 206
+    assert media_response.content == b"0123"
+    assert media_response.headers["content-type"] == "audio/wav"
 
 
 def test_media_supports_suffix_range(client: TestClient) -> None:
