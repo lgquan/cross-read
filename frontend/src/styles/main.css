@@ -667,6 +667,17 @@ button {
   max-width: 100% !important;
   height: auto;
   margin: 0 auto;
+  overflow: visible;
+}
+
+.markdown-body .mermaid-diagram p {
+  margin: 0;
+}
+
+.markdown-body .mermaid-diagram foreignObject > div,
+.markdown-body .mermaid-diagram .nodeLabel,
+.markdown-body .mermaid-diagram .edgeLabel {
+  line-height: normal;
 }
 
 .markdown-body .mermaid-error {
@@ -965,14 +976,10 @@ button {
 }
 
 @media (min-width: 900px) {
-  .reader-surface--markdown {
-    overflow: visible;
-  }
-
   .markdown-body .mermaid-diagram {
     position: relative;
     left: 50%;
-    width: min(calc(100vw - 48px), 1440px);
+    width: min(calc(100vw - 48px), 952px);
     max-width: none;
     padding: 24px;
     transform: translateX(-50%);

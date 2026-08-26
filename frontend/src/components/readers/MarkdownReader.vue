@@ -63,6 +63,26 @@ function rewriteAssets(value: string): string {
   return wrapper.innerHTML
 }
 
+function centerMermaidContent(node: HTMLElement): void {
+  const svg = node.querySelector<SVGSVGElement>('svg')
+  const graph = svg?.querySelector<SVGGElement>(':scope > g')
+  const viewBox = svg?.getAttribute('viewBox')?.trim().split(/\s+/).map(Number)
+  if (!svg || !graph || !viewBox || viewBox.length !== 4 || viewBox.some((value) => !Number.isFinite(value))) {
+    return
+  }
+
+  const [x, y, width, height] = viewBox as [number, number, number, number]
+  const svgRect = svg.getBoundingClientRect()
+  const graphRect = graph.getBoundingClientRect()
+  if (!svgRect.width || !svgRect.height || !graphRect.width || !graphRect.height) return
+
+  const horizontalOffset = graphRect.left + graphRect.width / 2 - (svgRect.left + svgRect.width / 2)
+  const verticalOffset = graphRect.top + graphRect.height / 2 - (svgRect.top + svgRect.height / 2)
+  const centeredX = x + horizontalOffset * (width / svgRect.width)
+  const centeredY = y + verticalOffset * (height / svgRect.height)
+  svg.setAttribute('viewBox', `${centeredX} ${centeredY} ${width} ${height}`)
+}
+
 async function renderMermaidDiagrams() {
   const nodes = Array.from(article.value?.querySelectorAll<HTMLElement>('.mermaid-diagram') ?? [])
   if (nodes.length === 0) return
@@ -92,6 +112,9 @@ async function renderMermaidDiagrams() {
       node.append(message, fallback)
     }
   }
+
+  await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+  for (const node of nodes) centerMermaidContent(node)
 }
 
 async function load() {
