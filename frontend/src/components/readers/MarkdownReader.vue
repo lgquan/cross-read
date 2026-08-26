@@ -38,6 +38,7 @@ let colorSchemeQuery: MediaQueryList | null = null
 const markdown = new MarkdownIt({
   html: false,
   linkify: true,
+  breaks: true,
   typographer: true,
 })
 
