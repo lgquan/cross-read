@@ -7,6 +7,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { getContentUrl, getTextContent } from '@/api/client'
 import { resolveMarkdownAssetPath } from '@/utils/markdownAssets'
 import { createHeadingId } from '@/utils/markdownHeadings'
+import { normalizeMarkdownSource } from '@/utils/markdownSource'
 import { parseThemePreference, resolveTheme, THEME_CHANGE_EVENT } from '@/utils/theme'
 import ReaderStatus from './ReaderStatus.vue'
 
@@ -232,7 +233,7 @@ async function load() {
   tocOpen.value = false
   try {
     const source = await getTextContent(props.shareId, props.path)
-    const safe = DOMPurify.sanitize(markdown.render(source), {
+    const safe = DOMPurify.sanitize(markdown.render(normalizeMarkdownSource(source)), {
       USE_PROFILES: { html: true },
     })
     html.value = rewriteAssets(safe)
