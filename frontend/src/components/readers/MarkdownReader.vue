@@ -4,6 +4,7 @@ import MarkdownIt from 'markdown-it'
 import { nextTick, onMounted, ref, watch } from 'vue'
 
 import { getContentUrl, getTextContent } from '@/api/client'
+import { resolveMarkdownAssetPath } from '@/utils/markdownAssets'
 import ReaderStatus from './ReaderStatus.vue'
 
 const props = defineProps<{
@@ -27,24 +28,13 @@ function isExternal(value: string): boolean {
   return /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(value)
 }
 
-function resolveAssetPath(documentPath: string, assetPath: string): string {
-  const cleanAsset = assetPath.split(/[?#]/, 1)[0] ?? ''
-  const segments = documentPath.split('/').slice(0, -1)
-  for (const part of cleanAsset.split('/')) {
-    if (!part || part === '.') continue
-    if (part === '..') segments.pop()
-    else segments.push(part)
-  }
-  return segments.join('/')
-}
-
 function rewriteAssets(value: string): string {
   const wrapper = document.createElement('div')
   wrapper.innerHTML = value
   for (const image of wrapper.querySelectorAll('img')) {
     const source = image.getAttribute('src')
     if (source && !isExternal(source)) {
-      image.src = getContentUrl(props.shareId, resolveAssetPath(props.path, source))
+      image.src = getContentUrl(props.shareId, resolveMarkdownAssetPath(props.path, source))
     }
     image.loading = 'lazy'
   }
